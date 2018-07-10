@@ -27,8 +27,11 @@ DEALINGS IN THE SOFTWARE.
 
 #include "platform_includes.h"
 
-extern "C"
-{
+#ifdef __cplusplus
+ extern "C" {
+#endif
+    void target_init();
+
     void target_enable_irq();
 
     void target_disable_irq();
@@ -75,7 +78,9 @@ extern "C"
     PROCESSOR_WORD_TYPE tcb_get_sp(void* tcb);
 
     void tcb_configure_args(void* tcb, PROCESSOR_WORD_TYPE ep, PROCESSOR_WORD_TYPE cp, PROCESSOR_WORD_TYPE pm);
+#ifdef __cplusplus
 }
+#endif
 
 
 #endif
