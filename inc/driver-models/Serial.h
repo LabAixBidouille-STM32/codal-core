@@ -352,7 +352,11 @@ namespace codal
           *
           * @return CODAL_SERIAL_IN_USE if another fiber is currently transmitting or receiving, otherwise DEVICE_OK.
           */
+<<<<<<< HEAD
         virtual int redirect(Pin& tx, Pin& rx)
+=======
+        virtual int redirect(Pin tx, Pin rx)
+>>>>>>> Remove PinName
         {
             return DEVICE_NOT_IMPLEMENTED;
         }
