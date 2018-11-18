@@ -44,15 +44,20 @@ using namespace codal;
  * @param id The ID of this compoenent e.g. DEVICE_ID_THERMOMETER
  */
 Sensor::Sensor(uint16_t id, uint16_t sensitivity, uint16_t samplePeriod)
+    :id(id), 
+     status(0),
+     samplePeriod(samplePeriod),
+     sensitivity(sensitivity),
+     highThreshold(0),
+     lowThreshold(0),
+     sensorValue(0)
 {
-    this->id = id;
-    this->setSensitivity(sensitivity);
-
+    setPeriod(samplePeriod);
+    setSensitivity(sensitivity);
+    updateSample();
     // Configure for a 2 Hz update frequency by default.
     if(EventModel::defaultEventBus)
         EventModel::defaultEventBus->listen(this->id, SENSOR_UPDATE_NEEDED, this, &Sensor::onSampleEvent, MESSAGE_BUS_LISTENER_IMMEDIATE);
-
-    this->setPeriod(samplePeriod);
 }
 
 /*
@@ -62,7 +67,6 @@ void Sensor::onSampleEvent(Event)
 {
     updateSample();
 }
-
 /*
  * Determines the instantaneous value of the sensor, in SI units, and returns it.
  *
@@ -99,14 +103,18 @@ void Sensor::updateSample()
  */
 void Sensor::checkThresholding()
 {
-    if ((this->status & SENSOR_HIGH_THRESHOLD_ENABLED) && (!(this->status & SENSOR_HIGH_THRESHOLD_PASSED)) && (sensorValue >= highThreshold))
+    if ((this->status & SENSOR_HIGH_THRESHOLD_ENABLED) 
+        && (!(this->status & SENSOR_HIGH_THRESHOLD_PASSED)) 
+        && (sensorValue >= highThreshold))
     {
         Event(this->id, SENSOR_THRESHOLD_HIGH);
         this->status |=  SENSOR_HIGH_THRESHOLD_PASSED;
         this->status &= ~SENSOR_LOW_THRESHOLD_PASSED;
     }
 
-    if ((this->status & SENSOR_LOW_THRESHOLD_ENABLED) && (!(this->status & SENSOR_LOW_THRESHOLD_PASSED)) && (sensorValue <= lowThreshold))
+    if ((this->status & SENSOR_LOW_THRESHOLD_ENABLED) 
+        && (!(this->status & SENSOR_LOW_THRESHOLD_PASSED)) 
+        && (sensorValue <= lowThreshold))
 
     {
         Event(this->id, SENSOR_THRESHOLD_LOW);
@@ -140,7 +148,7 @@ int Sensor::setPeriod(int period)
 {
     this->samplePeriod = period > 0 ? period : SENSOR_DEFAULT_SAMPLE_PERIOD;
     system_timer_event_every(this->samplePeriod, this->id, SENSOR_UPDATE_NEEDED);
-
+    
     return DEVICE_OK;
 }
 
@@ -164,7 +172,8 @@ int Sensor::getPeriod()
 int Sensor::setLowThreshold(uint16_t value)
 {
     // Protect against churn if the same threshold is set repeatedly.
-    if ((this->status & SENSOR_LOW_THRESHOLD_ENABLED) && lowThreshold == value)
+    if ((this->status & SENSOR_LOW_THRESHOLD_ENABLED) 
+        && lowThreshold == value)
         return DEVICE_OK;
 
     // We need to update our threshold

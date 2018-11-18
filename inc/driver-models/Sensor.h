@@ -55,10 +55,11 @@ namespace codal
     /**
      * Class definition for a generic analog sensor, and performs periodic sampling, buffering and low pass filtering of the data.
      */
-    class Sensor : public CodalComponent
+    class Sensor
     {
         protected:
-
+        uint16_t id;                    // Event Bus ID of this component
+        uint16_t status;                // Component defined state.
         uint16_t samplePeriod;       // The time between samples, in milliseconds.
         uint16_t sensitivity;        // A value between 0..1023 used with a decay average to smooth the sample data.
         uint16_t highThreshold;      // threshold at which a HIGH event is generated
@@ -81,13 +82,13 @@ namespace codal
          * Event Handler for periodic sample timer
          */
         void onSampleEvent(Event);
-
+        
         /**
          * Updates the internal reading of the sensor. Typically called periodicaly.
          *
          * @return DEVICE_OK on success.
          */
-        virtual void updateSample();
+        void updateSample();
 
         /*
          * Determines the instantaneous value of the sensor, in SI units, and returns it.
@@ -168,7 +169,9 @@ namespace codal
         /**
          * Read the value from underlying hardware.
          */
-        virtual int readValue( ) = 0;
+        virtual int readValue(){
+          return DEVICE_NOT_SUPPORTED;
+        }
 
     };
 }
