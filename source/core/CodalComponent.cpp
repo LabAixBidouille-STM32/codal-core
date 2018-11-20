@@ -84,7 +84,7 @@ void CodalComponent::addComponent()
 
     if(!(configuration & DEVICE_COMPONENT_LISTENERS_CONFIGURED) && EventModel::defaultEventBus)
     {
-        int ret = system_timer_event_every_us(SCHEDULER_TICK_PERIOD_US, DEVICE_ID_COMPONENT, DEVICE_COMPONENT_EVT_SYSTEM_TICK);
+        int ret = system_timer_event_every_us(SCHEDULER_TICK_PERIOD_US*10, DEVICE_ID_COMPONENT, DEVICE_COMPONENT_EVT_SYSTEM_TICK);
 
         if(ret == DEVICE_OK)
         {
