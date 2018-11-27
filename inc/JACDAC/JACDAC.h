@@ -126,6 +126,13 @@ namespace codal
         Baud125K = 8
     };
 
+    enum JACDACPinEvents : uint16_t
+    {
+        NoEvents = DEVICE_PIN_EVENT_NONE,
+        EdgeEvents = DEVICE_PIN_EVENT_ON_EDGE,
+        PulseEvents = DEVICE_PIN_EVENT_ON_PULSE,
+    };
+
     /**
     * Class definition for a JACDAC interface.
     */
@@ -137,11 +144,8 @@ namespace codal
         DMASingleWireSerial&  sws;
         Pin&  sp;
 
-        Pin* busLED;
-        Pin* commLED;
-
-        void onFallingEdge(Event);
-        void configure(bool events);
+        void onLowPulse(Event);
+        void configure(JACDACPinEvents event);
         void dmaComplete(Event evt);
 
         JDPkt* popQueue(JDPkt** queue);

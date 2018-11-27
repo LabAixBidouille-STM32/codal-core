@@ -125,7 +125,6 @@ void JDLogicDriver::periodicCallback()
                 pkt.address = 0;
                 pkt.size = sizeof(ControlPacket);
                 ControlPacket* cp = (ControlPacket*)pkt.data;
-                memset(cp, target_random(256), sizeof(ControlPacket));
                 populateControlPacket(current, cp);
 
                 // reset the flags after population as drivers should not receive any packets until their address is confirmed.
@@ -158,7 +157,6 @@ void JDLogicDriver::periodicCallback()
                     pkt.address = 0;
                     pkt.size = sizeof(ControlPacket);
                     ControlPacket* cp = (ControlPacket*)pkt.data;
-                    memset(cp, target_random(256), sizeof(ControlPacket));
                     populateControlPacket(current, cp);
                     current->fillControlPacket(&pkt);
 
