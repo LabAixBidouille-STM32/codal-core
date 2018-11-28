@@ -60,6 +60,15 @@ Sensor::Sensor(uint16_t id, uint16_t sensitivity, uint16_t samplePeriod)
         EventModel::defaultEventBus->listen(this->id, SENSOR_UPDATE_NEEDED, this, &Sensor::onSampleEvent, MESSAGE_BUS_LISTENER_IMMEDIATE);
 }
 
+/**
+ * Reads the currently configured device id.
+ *
+ * @return The ID of the sensor.
+ */
+uint16_t Sensor::getId(){
+    return this->id;
+}
+
 /*
  * Event Handler for periodic sample timer
  */

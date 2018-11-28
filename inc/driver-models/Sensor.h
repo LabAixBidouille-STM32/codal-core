@@ -78,6 +78,13 @@ namespace codal
          */
         Sensor(uint16_t id, uint16_t sensitivity = SENSOR_DEFAULT_SENSITIVITY, uint16_t samplePeriod = SENSOR_DEFAULT_SAMPLE_PERIOD);
 
+        /**
+          * Reads the currently configured device id.
+          *
+          * @return The ID of the sensor.
+          */
+        uint16_t getId();
+
         /*
          * Event Handler for periodic sample timer
          */
