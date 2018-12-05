@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
  * Implements a base class for such a sensor, using the Steinhart-Hart equation to delineate a result.
  */
 
+
 #include "Sensor.h"
 #include "ErrorNo.h"
 #include "CodalCompat.h"
@@ -44,20 +45,41 @@ using namespace codal;
  * @param id The ID of this compoenent e.g. DEVICE_ID_THERMOMETER
  */
 Sensor::Sensor(uint16_t id, uint16_t sensitivity, uint16_t samplePeriod)
-    :id(id), 
-     status(0),
+    :CodalComponent(id, 0),
      samplePeriod(samplePeriod),
      sensitivity(sensitivity),
      highThreshold(0),
      lowThreshold(0),
-     sensorValue(0)
+     sensorValue(0),
+     previousSampleTime(0),
+     needInit(true)
 {
-    setPeriod(samplePeriod);
-    setSensitivity(sensitivity);
-    updateSample();
+    previousSampleTime = system_timer_current_time();
     // Configure for a 2 Hz update frequency by default.
     if(EventModel::defaultEventBus)
         EventModel::defaultEventBus->listen(this->id, SENSOR_UPDATE_NEEDED, this, &Sensor::onSampleEvent, MESSAGE_BUS_LISTENER_IMMEDIATE);
+    
+    // Ensure we're scheduled to don't update the data periodically
+    status &= ~DEVICE_COMPONENT_STATUS_SYSTEM_TICK;
+    // Indicate that we're up and running.
+    status |= DEVICE_COMPONENT_STATUS_IDLE_TICK;
+    status |= DEVICE_COMPONENT_RUNNING;
+}
+
+/**
+  * Implement this function to receive a function call after the devices'
+  * device model has been instantiated.
+  */
+int Sensor::init()
+{
+    if(!needInit)
+      return DEVICE_OK;
+    
+    needInit = false;
+
+    int status = configure();
+        
+    return status;
 }
 
 /**
@@ -74,7 +96,7 @@ uint16_t Sensor::getId(){
  */
 void Sensor::onSampleEvent(Event)
 {
-    updateSample();
+    requestUpdate();
 }
 /*
  * Determines the instantaneous value of the sensor, in SI units, and returns it.
@@ -83,7 +105,27 @@ void Sensor::onSampleEvent(Event)
  */
 int Sensor::getValue()
 {
+    requestUpdate();
     return (int)sensorValue;
+}
+
+/**
+ * Poll to see if new data is available from the hardware. If so, update it.
+ * n.b. it is not necessary to explicitly call this function to update data
+ * (it normally happens in the background when the scheduler is idle), but a check is performed
+ * if the user explicitly requests up to date data.
+ *
+ * @return DEVICE_OK on success, DEVICE_I2C_ERROR if the update fails.
+ *
+ */
+int Sensor::requestUpdate()
+{
+    CODAL_TIMESTAMP actualTime = system_timer_current_time();
+    CODAL_TIMESTAMP delta = actualTime - previousSampleTime;
+    if(delta > samplePeriod || previousSampleTime > actualTime){
+        updateSample();
+    }
+    return DEVICE_OK;
 }
 
 /**
@@ -92,7 +134,7 @@ int Sensor::getValue()
 void Sensor::updateSample()
 {
     uint32_t value = readValue();
-
+    previousSampleTime = system_timer_current_time();
     // If this is the first reading performed, take it a a baseline. Otherwise, perform a decay average to smooth out the data.
     if (!(this->status & SENSOR_INITIALISED))
     {
@@ -103,7 +145,9 @@ void Sensor::updateSample()
     {
         sensorValue = ((sensorValue * (1023 - sensitivity)) + (value * sensitivity)) >> 10;
     }
-
+    
+    Event(this->id, SENSOR_UPDATED);
+    
     checkThresholding();
 }
 
@@ -142,7 +186,6 @@ void Sensor::checkThresholding()
 int Sensor::setSensitivity(uint16_t value)
 {
     this->sensitivity = max(0, min(1023, value));
-
     return DEVICE_OK;
 }
 
@@ -156,7 +199,11 @@ int Sensor::setSensitivity(uint16_t value)
 int Sensor::setPeriod(int period)
 {
     this->samplePeriod = period > 0 ? period : SENSOR_DEFAULT_SAMPLE_PERIOD;
-    system_timer_event_every(this->samplePeriod, this->id, SENSOR_UPDATE_NEEDED);
+
+    if(system_timer != NULL){
+        system_timer->cancel(this->id, SENSOR_UPDATE_NEEDED);
+        system_timer_event_every(this->samplePeriod, this->id, SENSOR_UPDATE_NEEDED);
+    }
     
     return DEVICE_OK;
 }
@@ -257,4 +304,8 @@ int Sensor::getHighThreshold()
  */
 Sensor::~Sensor()
 {
+}
+
+void Sensor::idleCallback() {
+    requestUpdate();
 }

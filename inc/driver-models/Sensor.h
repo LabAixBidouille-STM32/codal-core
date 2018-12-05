@@ -37,6 +37,7 @@ DEALINGS IN THE SOFTWARE.
 #define SENSOR_THRESHOLD_LOW 1
 #define SENSOR_THRESHOLD_HIGH 2
 #define SENSOR_UPDATE_NEEDED 3
+#define SENSOR_UPDATED 4
 
 /**
  * Status values
@@ -55,18 +56,16 @@ namespace codal
     /**
      * Class definition for a generic analog sensor, and performs periodic sampling, buffering and low pass filtering of the data.
      */
-    class Sensor
-    {
-        public:
-        const uint16_t id;                    // Event Bus ID of this component
+    class Sensor : public CodalComponent
+    {        
         protected:
-        
-        uint16_t status;                // Component defined state.
         uint16_t samplePeriod;       // The time between samples, in milliseconds.
         uint16_t sensitivity;        // A value between 0..1023 used with a decay average to smooth the sample data.
         uint16_t highThreshold;      // threshold at which a HIGH event is generated
         uint16_t lowThreshold;       // threshold at which a LOW event is generated
         uint16_t sensorValue;        // Last sampled data.
+        CODAL_TIMESTAMP previousSampleTime;
+        bool needInit;
 
         public:
 
@@ -79,6 +78,36 @@ namespace codal
           * @param id The ID of this compoenent e.g. DEVICE_ID_THERMOMETER
          */
         Sensor(uint16_t id, uint16_t sensitivity = SENSOR_DEFAULT_SENSITIVITY, uint16_t samplePeriod = SENSOR_DEFAULT_SAMPLE_PERIOD);
+
+        /**
+          * Configures the sensor for range and sample rate defined
+          * in this object. The nearest values are chosen to those defined
+          * that are supported by the hardware. The instance variables are then
+          * updated to reflect reality.
+          *
+          * @return DEVICE_OK on success, DEVICE_I2C_ERROR if the accelerometer could not be configured.
+          *
+        */
+        virtual int configure(){
+          return DEVICE_NOT_SUPPORTED;
+        }
+
+        /**
+        * Implement this function to receive a function call after the devices'
+        * device model has been instantiated.
+        */
+        virtual int init();
+
+        /**
+          * Poll to see if new data is available from the hardware. If so, update it.
+          * n.b. it is not necessary to explicitly call this function to update data
+          * (it normally happens in the background when the scheduler is idle), but a check is performed
+          * if the user explicitly requests up to date data.
+          *
+          * @return DEVICE_OK on success, DEVICE_I2C_ERROR if the update fails.
+          *
+        */
+        int requestUpdate();
 
         /**
           * Reads the currently configured device id.
@@ -167,6 +196,11 @@ namespace codal
           * Destructor.
           */
         virtual ~Sensor();
+
+        /**
+          * Implement this function to receive a callback when the device is idling.
+          */
+        virtual void idleCallback();
 
         protected:
         
