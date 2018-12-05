@@ -199,12 +199,6 @@ int Sensor::setSensitivity(uint16_t value)
 int Sensor::setPeriod(int period)
 {
     this->samplePeriod = period > 0 ? period : SENSOR_DEFAULT_SAMPLE_PERIOD;
-
-    if(system_timer != NULL){
-        system_timer->cancel(this->id, SENSOR_UPDATE_NEEDED);
-        system_timer_event_every(this->samplePeriod, this->id, SENSOR_UPDATE_NEEDED);
-    }
-    
     return DEVICE_OK;
 }
 
