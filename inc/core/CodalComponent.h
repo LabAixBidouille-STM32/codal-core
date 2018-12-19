@@ -69,6 +69,8 @@ DEALINGS IN THE SOFTWARE.
 #define DEVICE_ID_SPRITE 35
 #define DEVICE_ID_SINGLE_WIRE_SERIAL 36
 
+#define DEVICE_ID_BLE              39
+
 #define DEVICE_ID_IO_P0               100                       // IDs 100-227 are reserved for I/O Pin IDs.
 
 #define DEVICE_ID_MESSAGE_BUS_LISTENER            1021          // Message bus indication that a handler for a given ID has been registered.
