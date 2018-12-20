@@ -1,8 +1,15 @@
-BasedOnStyle: LLVM
+BasedOnStyle: Chromium
+Standard : Cpp11
 IndentWidth: 4
+TabWidth: 4
 UseTab: Never
 ColumnLimit: 100
-BreakBeforeBraces: Allman
-AccessModifierOffset: -4
+DerivePointerAlignment: false
+PointerAlignment: Left
+BreakBeforeBraces: Attach
+AccessModifierOffset: -2
 AllowShortFunctionsOnASingleLine: Inline
-SortIncludes: false
+AlignConsecutiveAssignments: true
+BinPackArguments : true
+BinPackParameters : true
+SortIncludes: true
