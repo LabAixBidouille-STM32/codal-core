@@ -67,6 +67,7 @@ DEALINGS IN THE SOFTWARE.
 #define DEVICE_ID_JACDAC_CONFIGURATION_SERVICE 33
 
 #define DEVICE_ID_BLE              39
+#define DEVICE_ID_JOYSTICK         40
 
 #define DEVICE_ID_IO_P0               100                       // IDs 100-227 are reserved for I/O Pin IDs.
 
