@@ -52,7 +52,7 @@ DEALINGS IN THE SOFTWARE.
 #define JD_SERIAL_HEADER_SIZE          4
 #define JD_SERIAL_CRC_HEADER_SIZE      2 // when computing CRC, we skip the CRC field, so the header size decreases by two.
 #define JD_SERIAL_DATA_SIZE            32
-#define JD_SERIAL_MAX_PAYLOAD_SIZE     (255 - JD_SERIAL_HEADER_SIZE)
+#define JD_SERIAL_MAX_DATA_SIZE        32 // duplciate above for now
 #define JD_SERIAL_PACKET_SIZE          (JD_SERIAL_HEADER_SIZE + JD_SERIAL_DATA_SIZE)
 
 #define JD_SERIAL_MAXIMUM_BUFFERS      10
@@ -106,7 +106,9 @@ namespace codal
         uint8_t size;
 
         // add more stuff
-        uint8_t data[JD_SERIAL_DATA_SIZE];
+        uint8_t data[JD_SERIAL_MAX_DATA_SIZE];
+
+        JDPkt* next;
     } __attribute((__packed__));
 
     enum class JACDACBusState : uint8_t
