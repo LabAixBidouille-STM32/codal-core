@@ -119,7 +119,7 @@ void JACDAC::dmaComplete(Event evt)
 
                 status &= ~(JD_SERIAL_RECEIVING_HEADER);
 
-                JDPkt* rx = (JDPkt*)rxBuf;
+                JDPacket* rx = (JDPacket*)rxBuf;
                 sws.receiveDMA(((uint8_t*)rxBuf) + JD_SERIAL_HEADER_SIZE, rx->size);
                 DMESG("RXH %d",rx->size);
 
@@ -139,7 +139,7 @@ void JACDAC::dmaComplete(Event evt)
                 {
                     // move rxbuf to rxArray and allocate new buffer.
                     addToRxArray(rxBuf);
-                    rxBuf = (JDPkt*)malloc(sizeof(JDPkt));
+                    rxBuf = (JDPacket*)malloc(sizeof(JDPacket));
                     Event(id, JD_SERIAL_EVT_DATA_READY);
                     DMESG("DMA RXD");
                 }
@@ -237,14 +237,14 @@ void JACDAC::rxTimeout(Event)
  *        txHead            txTail
  * [NULL, item, item, item, item, NULL, NULL]
  **/
-JDPkt* JACDAC::popRxArray()
+JDPacket* JACDAC::popRxArray()
 {
     // nothing to pop
     if (this->rxTail == this->rxHead)
         return NULL;
 
     uint8_t nextHead = (this->rxHead + 1) % JD_RX_ARRAY_SIZE;
-    JDPkt* p = rxArray[this->rxHead];
+    JDPacket* p = rxArray[this->rxHead];
     this->rxArray[this->rxHead] = NULL;
     target_disable_irq();
     this->rxHead = nextHead;
@@ -268,14 +268,14 @@ JDPkt* JACDAC::popRxArray()
  *        txHead                  txTail
  * [NULL, item, item, item, item, NULL, NULL]
  **/
-JDPkt* JACDAC::popTxArray()
+JDPacket* JACDAC::popTxArray()
 {
     // nothing to pop
     if (this->txTail == this->txHead)
         return NULL;
 
     uint8_t nextHead = (this->txHead + 1) % JD_TX_ARRAY_SIZE;
-    JDPkt* p = txArray[this->txHead];
+    JDPacket* p = txArray[this->txHead];
     this->txArray[this->txHead] = NULL;
     target_disable_irq();
     this->txHead = nextHead;
@@ -299,7 +299,7 @@ JDPkt* JACDAC::popTxArray()
  *        txHead                  txTail
  * [NULL, item, item, item, item, NULL, NULL]
  **/
-int JACDAC::addToTxArray(JDPkt* packet)
+int JACDAC::addToTxArray(JDPacket* packet)
 {
      uint8_t nextTail = (this->txTail + 1) % JD_TX_ARRAY_SIZE;
 
@@ -331,7 +331,7 @@ int JACDAC::addToTxArray(JDPkt* packet)
  *        txHead                  txTail
  * [NULL, item, item, item, item, NULL, NULL]
  **/
-int JACDAC::addToRxArray(JDPkt* packet)
+int JACDAC::addToRxArray(JDPacket* packet)
 {
      uint8_t nextTail = (this->rxTail + 1) % JD_RX_ARRAY_SIZE;
 
@@ -372,8 +372,8 @@ void JACDAC::initialise()
 {
     rxBuf = NULL;
     txBuf = NULL;
-    memset(rxArray, 0, sizeof(JDPkt*) * JD_RX_ARRAY_SIZE);
-    memset(txArray, 0, sizeof(JDPkt*) * JD_TX_ARRAY_SIZE);
+    memset(rxArray, 0, sizeof(JDPacket*) * JD_RX_ARRAY_SIZE);
+    memset(txArray, 0, sizeof(JDPacket*) * JD_TX_ARRAY_SIZE);
 
     status = 0;
 
@@ -423,7 +423,7 @@ JACDAC::JACDAC(DMASingleWireSerial&  sws, Pin& led, JACDACBaudRate baudRate, uin
  *
  * @returns the first packet on the rxQueue or NULL
  */
-JDPkt* JACDAC::getPacket()
+JDPacket* JACDAC::getPacket()
 {
     return popRxArray();
 }
@@ -437,7 +437,7 @@ void JACDAC::start()
         return;
 
     if (rxBuf == NULL)
-        rxBuf = (JDPkt*)malloc(sizeof(JDPkt));
+        rxBuf = (JDPacket*)malloc(sizeof(JDPacket));
 
     JD_DMESG("JD START");
 
@@ -548,7 +548,7 @@ void JACDAC::sendPacket(Event)
  *
  * @returns DEVICE_OK on success, DEVICE_INVALID_PARAMETER if JD is NULL, or DEVICE_NO_RESOURCES if the queue is full.
  */
-int JACDAC::send(JDPkt* tx)
+int JACDAC::send(JDPacket* tx)
 {
     JD_DMESG("SEND");
     if (tx == NULL)
@@ -560,9 +560,9 @@ int JACDAC::send(JDPkt* tx)
 
     JD_DMESG("QUEU");
 
-    JDPkt* pkt = (JDPkt *)malloc(sizeof(JDPkt));
-    memset(pkt, 0, sizeof(JDPkt));
-    memcpy(pkt, tx, sizeof(JDPkt));
+    JDPacket* pkt = (JDPacket *)malloc(sizeof(JDPacket));
+    memset(pkt, 0, sizeof(JDPacket));
+    memcpy(pkt, tx, sizeof(JDPacket));
 
     DMESG("QU %d", pkt->size);
 
@@ -604,8 +604,8 @@ int JACDAC::send(uint8_t* buf, int len, uint8_t address)
         return DEVICE_INVALID_PARAMETER;
     }
 
-    JDPkt pkt;
-    memset(&pkt, 0, sizeof(JDPkt));
+    JDPacket pkt;
+    memset(&pkt, 0, sizeof(JDPacket));
 
     pkt.crc = 0;
     pkt.address = address;
