@@ -444,10 +444,8 @@ void JACDAC::start()
 
     JD_DMESG("JD START");
 
-    target_disable_irq();
     status = 0;
     status |= DEVICE_COMPONENT_RUNNING;
-    target_enable_irq();
 
     configure(JACDACPinEvents::PulseEvents);
 }
