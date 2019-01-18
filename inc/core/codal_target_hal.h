@@ -38,9 +38,9 @@ DEALINGS IN THE SOFTWARE.
 
     void target_reset();
 
-    void target_wait(unsigned long milliseconds);
+    void target_wait(uint32_t milliseconds);
 
-    void target_wait_us(unsigned long us);
+    void target_wait_us(uint32_t us);
 
     int target_seed_random(uint32_t rand);
 
