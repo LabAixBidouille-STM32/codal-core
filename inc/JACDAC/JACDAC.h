@@ -122,9 +122,8 @@ namespace codal
         uint8_t address; // control is 0, devices are allocated address in the range 1 - 255
         uint8_t size; // the size, address, and crc are not included by the size variable. The size of a packet dictates the size of the data field.
         // add more stuff
-        uint8_t data[JD_SERIAL_MAX_DATA_SIZE];
-
-        JDPkt* next;
+        uint8_t data[JD_SERIAL_MAX_PAYLOAD_SIZE];
+        uint8_t communication_rate;
     } __attribute((__packed__));
 
     enum class JDBusState : uint8_t
