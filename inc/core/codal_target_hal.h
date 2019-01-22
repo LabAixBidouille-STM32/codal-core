@@ -49,6 +49,8 @@ DEALINGS IN THE SOFTWARE.
     uint32_t target_get_serial();
 
     void target_wait_for_event();
+  
+    void target_deepsleep();
 
     void target_panic(int statusCode);
 
