@@ -313,7 +313,26 @@ void ST7735::waitForSendDone()
         fiber_wait_for_event(DEVICE_ID_DISPLAY, 101);
 }
 
-#define ENC16(r, g, b) (((r << 3) | (g >> 3)) & 0xff) | (((b | (g << 5)) & 0xff) << 8)
+void ST7735::setSleep(bool sleepMode)
+{
+    if (sleepMode == this->inSleepMode)
+        return;
+
+    if (sleepMode)
+    {
+        uint8_t cmd = ST7735_SLPIN;
+        this->inSleepMode = true;
+        waitForSendDone();
+        sendCmd(&cmd, 1);
+    }
+    else
+    {
+        uint8_t cmd = ST7735_SLPOUT;
+        sendCmd(&cmd, 1);
+        fiber_sleep(120);
+        this->inSleepMode = false;
+    }
+}
 
 int ST7735::sendIndexedImage(const uint8_t *src, unsigned width, unsigned height, uint32_t *palette)
 {
@@ -321,18 +340,12 @@ int ST7735::sendIndexedImage(const uint8_t *src, unsigned width, unsigned height
     {
         work = new ST7735WorkBuffer;
         memset(work, 0, sizeof(*work));
-        if (double16)
-            for (int i = 0; i < 16; ++i) {
-                uint16_t e = ENC16(i, i, i);
-                work->expPalette[i] = e | (e << 16);
-            }
-        else
-            for (int i = 0; i < 256; ++i)
-                work->expPalette[i] = 0x1011 * (i & 0xf) | (0x110100 * (i >> 4));
+        for (int i = 0; i < 256; ++i)
+            work->expPalette[i] = 0x1011 * (i & 0xf) | (0x110100 * (i >> 4));
         EventModel::defaultEventBus->listen(DEVICE_ID_DISPLAY, 100, this, &ST7735::sendDone);
     }
 
-    if (work->inProgress)
+    if (work->inProgress || inSleepMode)
         return DEVICE_BUSY;
 
     work->paletteTable = palette;

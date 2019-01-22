@@ -50,6 +50,7 @@ protected:
     Pin &dc;
     uint8_t cmdBuf[20];
     ST7735WorkBuffer *work;
+    bool inSleepMode;
 
     // if true, every pixel will be plotted as 4 pixels and 16 bit color mode
     // will be used; this is for ILI9341 which usually has 320x240 screens
@@ -90,6 +91,11 @@ public:
      * Waits for the previous sendIndexedImage() operation to complete (it normally executes in background).
      */
     void waitForSendDone();
+
+    /**
+     * Puts the display in (or out of) sleep mode.
+     */
+    void setSleep(bool sleepMode);
 };
 
 }
